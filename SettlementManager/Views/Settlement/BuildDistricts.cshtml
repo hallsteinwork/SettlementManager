@@ -1,0 +1,53 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Newtonsoft.Json
+@model SettlementManager.ViewModels.BuildDistrictsViewModel
+
+<h2>Построить районы</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Название района</th>
+        <th>Описание</th>
+        <th>Требуемые ресурсы</th>
+        <th>Требуемые инструменты</th>
+        <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var district in Model.Districts)
+    {
+    <tr>
+        <td>@district.Name</td>
+        <td>@district.Description</td>
+        <td>
+            @foreach (var reqResource in district.RequiredResources)
+            {
+            var availableResource = Model.SettlementResources.FirstOrDefault(r => r.Type == reqResource.Type);
+            bool isSufficient = availableResource != null && availableResource.Amount >= reqResource.Quantity;
+
+            <span style="color: @(isSufficient ? "green" : "red")">
+                            @reqResource.Quantity / @reqResource.Quantity + " / " + reqResource.Type
+                        </span><br />
+            }
+        </td>
+        <td>
+            @foreach (var tool in district.RequiredTools)
+            {
+            var hasTool = Model.SettlementResources.Any(r => r.Name == tool);
+            <span style="color: @(hasTool ? "green" : "red")">@tool</span><br />
+            }
+        </td>
+        <td>
+            <form asp-action="BuildDistrict" method="post">
+                <input type="hidden" name="SettlementId" value="@Model.SettlementId" />
+                <input type="hidden" name="Description" value="@district.Description" />
+                <input type="hidden" name="RequiredResourcesJson" value="@JsonConvert.SerializeObject(district.RequiredResources)" />
+                <input type="hidden" name="RequiredToolsJson" value="@JsonConvert.SerializeObject(district.RequiredTools)" />
+                <button type="submit" class="btn btn-primary">Построить</button>
+            </form>
+        </td>
+    </tr>
+    }
+    </tbody>
+</table>
