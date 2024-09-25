@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\..\..\.nuget\packages\newtonsoft.json\13.0.3\lib\net6.0\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
+      <PackageReference Include="Serilog" Version="4.0.1" />
+      <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    </ItemGroup>
+
+</Project>

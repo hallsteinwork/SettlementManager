@@ -1,0 +1,154 @@
+@model SettlementManager.Models.District
+
+@{
+ViewData["Title"] = "Add District";
+}
+
+<h2>Add District</h2>
+
+<form asp-action="AddDistrict" method="post">
+    @* Hidden fields for tools and resources *@
+    <input type="hidden" id="resourcesList" name="resourcesList" />
+    <input type="hidden" id="toolsList" name="toolsList" />
+
+    <div class="form-group">
+        <label asp-for="Name">District Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description">Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label>Production Mode</label>
+        <input asp-for="ProductionMode" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Grade</label>
+        <select asp-for="Grade" class="form-control">
+            @foreach (var grade in Enum.GetValues(typeof(SettlementManager.Models.DistrictGrade)))
+            {
+            <option value="@grade">@grade</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Buff For Players</label>
+        <input asp-for="BuffForPlayers" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Select Resource Type</label>
+        <select id="resourceSelect" class="form-control">
+            @foreach (var resource in Enum.GetValues(typeof(SettlementManager.Models.ResourceType)))
+            {
+            <option value="@resource">@resource</option>
+            }
+        </select>
+        <input type="number" id="resourceQuantity" class="form-control mt-2" placeholder="Quantity" />
+        <button type="button" id="addResource" class="btn btn-secondary mt-2">Add Resource</button>
+    </div>
+
+    <ul id="resourceList" class="list-group mt-2"></ul>
+
+    <div class="form-group mt-4">
+        <label>Add Tools</label>
+        <input type="text" id="toolInput" class="form-control" placeholder="Enter tool name" />
+        <button type="button" id="addTool" class="btn btn-secondary mt-2">Add Tool</button>
+    </div>
+
+    <ul id="toolList" class="list-group mt-2"></ul>
+
+    <button type="submit" class="btn btn-primary mt-4">Submit</button>
+</form>
+
+@section Scripts {
+<script>
+    const resourceList = [];
+    const toolList = [];
+
+    document.getElementById("addResource").addEventListener("click", () => {
+        const resourceType = document.getElementById("resourceSelect").value;
+        const quantity = parseInt(document.getElementById("resourceQuantity").value);
+
+        if (quantity && resourceType && !resourceList.some(item => item.type === resourceType)) {
+            resourceList.push({ type: resourceType, quantity });
+            updateResourceList();
+            updateHiddenFields();
+        }
+    });
+
+    function updateResourceList() {
+        const resourceListElement = document.getElementById("resourceList");
+        resourceListElement.innerHTML = "";
+        resourceList.forEach((resource, index) => {
+            const li = document.createElement("li");
+            li.textContent = `${resource.type} - ${resource.quantity}`;
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+            const removeButton = document.createElement("button");
+            removeButton.textContent = "Remove";
+            removeButton.className = "btn btn-sm btn-danger";
+            removeButton.onclick = () => {
+                resourceList.splice(index, 1);
+                updateResourceList();
+                updateHiddenFields();
+            };
+
+            li.appendChild(removeButton);
+            resourceListElement.appendChild(li);
+        });
+    }
+
+    document.getElementById("addTool").addEventListener("click", addTool);
+    document.getElementById("toolInput").addEventListener("keypress", (event) => {
+        if (event.key === 'Enter') {
+            addTool();
+            event.preventDefault(); // Prevent form submission
+        }
+    });
+
+    function addTool() {
+        const toolName = document.getElementById("toolInput").value.trim();
+        if (toolName && !toolList.includes(toolName)) {
+            toolList.push(toolName);
+            updateToolList();
+            updateHiddenFields();
+            document.getElementById("toolInput").value = "";
+        }
+    }
+
+    function updateToolList() {
+        const toolListElement = document.getElementById("toolList");
+        toolListElement.innerHTML = "";
+        toolList.forEach((tool, index) => {
+            const li = document.createElement("li");
+            li.textContent = tool;
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+            const removeButton = document.createElement("button");
+            removeButton.textContent = "Remove";
+            removeButton.className = "btn btn-sm btn-danger";
+            removeButton.onclick = () => {
+                toolList.splice(index, 1);
+                updateToolList();
+                updateHiddenFields();
+            };
+
+            li.appendChild(removeButton);
+            toolListElement.appendChild(li);
+        });
+    }
+
+    function updateHiddenFields() {
+        document.getElementById("resourcesList").value = JSON.stringify(resourceList);
+        document.getElementById("toolsList").value = JSON.stringify(toolList);
+    }
+</script>
+}

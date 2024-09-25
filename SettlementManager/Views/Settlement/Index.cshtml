@@ -1,29 +1,30 @@
+@model IEnumerable<SettlementManager.Models.Settlement>
+
+
 @{
-    ViewData["Title"] = "Управление поселением";
+ViewData["Title"] = "Управление поселениями";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<div class="list-group">
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddResident">
-        Добавить поселенца
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddDistrict">
-        Добавить район
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="BuildDistrict">
-        Построить район
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="GetInfoSettlement">
-        Информация о поселении
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="GetResidents">
-        Поселенцы в районе
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddSpear">
-        Добавить копье
-    </a>
-    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="SetAsSpearLeader">
-        Установить лидера копья
-    </a>
+<!-- Кнопка для создания нового поселения -->
+<div class="mb-3">
+    <a class="btn btn-success" asp-controller="Settlement" asp-action="AddSettlement">Создать поселение</a>
 </div>
+
+@if (Model != null && Model.Any())
+{
+<div class="list-group">
+    @foreach (var settlement in Model)
+    {
+    <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="Manage" asp-route-settlementId="@settlement.Id">
+        @settlement.Name
+    </a>
+    }
+</div>
+}
+else
+{
+<p>Нет поселений для отображения.</p>
+}
+

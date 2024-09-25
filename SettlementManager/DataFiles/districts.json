@@ -1,0 +1,41 @@
+[
+  {
+    "Id": 0,
+    "Name": "Модус-6",
+    "SettlementId": 0,
+    "Residents": [],
+    "ProductionMode": "",
+    "Output": [],
+    "Description": "Это центральное место любой колонии, здесь в панели управления можно улучшать поселение.",
+    "Grade": 0,
+    "BuffForPlayers": "",
+    "DateCreated": "2024-09-24T13:00:23.9614573Z",
+    "RequiredResources": [],
+    "RequiredTools": []
+  },
+  {
+    "Id": 0,
+    "Name": "Мастерская",
+    "SettlementId": 0,
+    "Residents": [],
+    "ProductionMode": "Обычный",
+    "Output": [],
+    "Description": "Место, где с помощью Репликатора создаются простенькие предметы, которые удовлетворяют потребности маленького поселения.",
+    "Grade": 0,
+    "BuffForPlayers": "Возможность создавать ресурсы по репликационным схемам",
+    "DateCreated": "2024-09-25T10:06:36.3823014Z",
+    "RequiredResources": [
+      {
+        "Type": 0,
+        "Quantity": 2500
+      },
+      {
+        "Type": 1,
+        "Quantity": 500
+      }
+    ],
+    "RequiredTools": [
+      "Малый Промышленный Репликатор"
+    ]
+  }
+]

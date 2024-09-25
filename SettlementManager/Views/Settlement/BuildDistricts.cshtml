@@ -11,6 +11,7 @@
         <th>Описание</th>
         <th>Требуемые ресурсы</th>
         <th>Требуемые инструменты</th>
+        <th>Уже построено</th>
         <th>Действие</th>
     </tr>
     </thead>
@@ -18,36 +19,127 @@
     @foreach (var district in Model.Districts)
     {
     <tr>
-        <td>@district.Name</td>
+        <td>
+            <a href="#" class="district-name" data-toggle="modal" data-target="#buffModal"
+               data-buff="@district.BuffForPlayers"
+               data-output="@string.Join(", ", district.Output)">@district.Name</a>
+        </td>
         <td>@district.Description</td>
         <td>
-            @foreach (var reqResource in district.RequiredResources)
-            {
-            var availableResource = Model.SettlementResources.FirstOrDefault(r => r.Type == reqResource.Type);
-            bool isSufficient = availableResource != null && availableResource.Amount >= reqResource.Quantity;
+            <ul>
+                @foreach (var reqResource in district.RequiredResources)
+                {
+                var availableResource = Model.SettlementResources.FirstOrDefault(r => r.Type == reqResource.Type);
+                int availableAmount = availableResource?.Amount ?? 0;
+                bool isSufficient = availableAmount >= reqResource.Quantity;
 
-            <span style="color: @(isSufficient ? "green" : "red")">
-                            @reqResource.Quantity / @reqResource.Quantity + " / " + reqResource.Type
-                        </span><br />
-            }
+                <li style="color: @(isSufficient ? "green" : "red")">
+                    @availableAmount / @reqResource.Quantity @reqResource.Type.ToRussian()
+                </li>
+                }
+            </ul>
         </td>
         <td>
-            @foreach (var tool in district.RequiredTools)
+            <ul>
+                @foreach (var tool in district.RequiredTools)
+                {
+                var hasTool = Model.SettlementResources.Any(r => r.Name == tool);
+                <li style="color: @(hasTool ? "green" : "red")">@tool</li>
+                }
+            </ul>
+        </td>
+        <td>
+            @if (Model.BuiltDistrictsCount.TryGetValue(district.Name, out int count))
             {
-            var hasTool = Model.SettlementResources.Any(r => r.Name == tool);
-            <span style="color: @(hasTool ? "green" : "red")">@tool</span><br />
+            <span>@count</span> <!-- Display the count of built districts -->
+            }
+            else
+            {
+            <span>0</span> <!-- No districts built with this name -->
             }
         </td>
+
+
         <td>
             <form asp-action="BuildDistrict" method="post">
                 <input type="hidden" name="SettlementId" value="@Model.SettlementId" />
                 <input type="hidden" name="Description" value="@district.Description" />
                 <input type="hidden" name="RequiredResourcesJson" value="@JsonConvert.SerializeObject(district.RequiredResources)" />
                 <input type="hidden" name="RequiredToolsJson" value="@JsonConvert.SerializeObject(district.RequiredTools)" />
-                <button type="submit" class="btn btn-primary">Построить</button>
+                <button type="button" class="btn btn-primary build-district" data-description="@district.Description" data-districtname="@district.Name">Построить</button>
             </form>
         </td>
     </tr>
     }
     </tbody>
 </table>
+
+<!-- Modal -->
+<div class="modal fade" id="buffModal" tabindex="-1" role="dialog" aria-labelledby="buffModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="buffModalLabel">Информация о районе</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Эффект:</strong> <span id="buffForPlayersContent"></span></p>
+                <p><strong>Выхлоп района:</strong> <span id="outputContent"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $('.build-district').click(function () {
+            var description = $(this).data('description');
+            var districtName = $(this).data('districtname');
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("BuildDistrict", "Settlement")',
+                data: {
+                    description: description,
+                    districtName: districtName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload(); // Reload the page to show the updated districts
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert("Произошла ошибка: " + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('.district-name').click(function () {
+            var buffForPlayers = $(this).data('buff');
+            var output = $(this).data('output');
+
+            $('#buffForPlayersContent').text(buffForPlayers);
+            $('#outputContent').text(output);
+        });
+    });
+</script>
+}
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Bootstrap CSS and JS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

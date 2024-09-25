@@ -1,0 +1,156 @@
+@model Settlement
+
+@{
+ViewData["Title"] = Model.Name;
+}
+
+<h1>@ViewData["Title"]</h1>
+<div>
+    <p>@Model.Description</p>
+
+    <h3>Районы:</h3>
+    <ul>
+        @foreach (var district in Model.Districts)
+        {
+        <li>@district.Name</li>
+        }
+    </ul>
+
+    <h3>Поселенцы:</h3>
+    <ul>
+        @if (Model.Residents != null && Model.Residents.Any())
+        {
+        var ascendedResidents = Model.Residents.Where(r => r.IsAscended).ToList();
+        foreach (var resident in ascendedResidents)
+        {
+        string grade = resident.GradeOfAscending switch
+        {
+        1 => "Дерево",
+        2 => "Бронза",
+        3 => "Серебро",
+        4 => "Золото",
+        5 => "Небо",
+        _ => "Неизвестный"
+        };
+        <li><strong>@resident.Name</strong> - @grade</li>;
+        }
+
+       // Next, get important residents
+       var importantResidents = Model.Residents
+           .Where(r => r.IsImportant && !r.IsAscended)
+           .ToList();
+
+       foreach (var resident in importantResidents)
+       {
+           <li>@resident.Name</li>
+       }
+
+       // Finally, get all other residents who are not ascended or important
+       var otherResidents = Model.Residents
+           .Where(r => !r.IsAscended && !r.IsImportant)
+           .ToList();
+
+       foreach (var resident in otherResidents)
+       {
+           <li>@resident.Name</li>
+       }
+        }
+        else
+        {
+        <li>Нет поселенцев.</li>
+        }
+    </ul>
+
+ <h3>Ресурсы:</h3>
+    
+<table id="resourcesTable" class="table">
+    <thead>
+        <tr>
+            <th>Ресурс</th>
+            <th>Количество</th>
+            <th><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
+                    Добавить ресурс
+                </button></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var resource in Model.Resources)
+        {
+            <tr>
+                <td>@resource.Name</td>
+                <td>@resource.Amount</td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal for adding a resource -->
+<div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="addResourceModalLabel">Добавить ресурс</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addResourceForm" method="post" action="@Url.Action("AddResource", "Settlement")">
+                    <input type="hidden" name="settlementId" value="@Model.Id" />
+
+                    <div class="form-group">
+                        <label for="ResourceType">Ресурс</label>
+                        <select id="resourceType" name="Type" class="form-select" required>
+                            @foreach (var resourceType in Enum.GetValues(typeof(ResourceType)).Cast<ResourceType>())
+                            {
+                                <option value="@((int)resourceType)">@resourceType.ToRussian()</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Amount">Количество</label>
+                        <input type="number" name="Amount" class="form-control" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Name">Название</label>
+                        <input type="text" name="Name" id="resourceName" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Внести</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#resourceType').on('change', function() {
+                var selectedType = $(this).val();
+                var resourceNameField = $('#resourceName');
+
+                // Auto-fill the name based on the resource type
+                if (selectedType != "5") { // Assuming "5" is the value for "Tool"
+                    resourceNameField.val($(this).find('option:selected').text());
+                    resourceNameField.prop('readonly', true); // Make it read-only for resources
+                } else {
+                    resourceNameField.val(''); // Clear the field for tools
+                    resourceNameField.prop('readonly', false); // Make it editable for tools
+                }
+            });
+
+            // Trigger change to set initial state
+            $('#resourceType').change();
+
+            $('form#addResourceForm').on('submit', function(e) {
+                console.log('Form is being submitted!');
+                // You can add other form validation or logging here
+            });
+        });
+    </script>
+}
+
+</div>

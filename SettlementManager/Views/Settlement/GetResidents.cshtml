@@ -1,0 +1,21 @@
+@model List<Resident>
+
+<h2>Поселенцы в районе</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Имя</th>
+        <th>Профессия</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var resident in Model)
+    {
+        <tr>
+            <td>@resident.Name</td>
+            <td>@resident.Occupation</td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,25 @@
+@model Settlement
+
+<h2>Информация о поселении</h2>
+
+<p><strong>Название:</strong> @Model.Name</p>
+<p><strong>Баланс ресурсов:</strong> @Model.Resources.Sum(r => r.Amount)</p>
+
+<h3>Районы</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Описание</th>
+        <th>Режим производства</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var district in Model.Districts)
+    {
+    <tr>
+        <td>@district.Description</td>
+        <td>@district.ProductionMode</td>
+    </tr>
+    }
+    </tbody>
+</table>

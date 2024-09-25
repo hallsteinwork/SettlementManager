@@ -1,0 +1,66 @@
+@model Resident
+
+<h2>Добавить поселенца</h2>
+
+<form asp-action="AddResident" method="post">
+    <input type="hidden" asp-for="SettlementId" value="@ViewBag.settlementId" /> <!-- Скрытое поле для ID поселения -->
+
+    <div class="form-group">
+        <label asp-for="Name" class="control-label"></label>
+        <input asp-for="Name" class="form-control" required />
+    </div>
+    <div class="form-group">
+        <label asp-for="Occupation" class="control-label"></label>
+        <input asp-for="Occupation" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DistrictId" class="form-label">Выберите район</label>
+        <select asp-for="DistrictId" asp-items="@(new SelectList(ViewBag.Districts, "Id", "Name"))" class="form-select">
+            <option value="">Не выбран</option> <!-- Default option for no selection -->
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="IsImportant" class="control-label"></label>
+        <input asp-for="IsImportant" type="checkbox" />
+        <span>Персонаж важен?</span>
+    </div>
+    <div class="form-group">
+        <label asp-for="IsAscended" class="control-label"></label>
+        <input asp-for="IsAscended" type="checkbox" id="isAscendedCheckbox" onchange="toggleGradeSelect()" />
+        <span>Персонаж восходящий?</span>
+    </div>
+
+    <div class="form-group" id="gradeSelectContainer" style="display:none;">
+        <label asp-for="GradeOfAscending" class="form-label">Грейд</label>
+        <select asp-for="GradeOfAscending" class="form-select">
+            <option value="1">Дерево</option>
+            <option value="2">Бронза</option>
+            <option value="3">Серебро</option>
+            <option value="4">Золото</option>
+            <option value="5">Небо</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description" class="control-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Добавить</button>
+</form>
+
+<script>
+    function toggleGradeSelect() {
+        var isAscendedCheckbox = document.getElementById('isAscendedCheckbox');
+        var gradeSelectContainer = document.getElementById('gradeSelectContainer');
+
+        // Показываем или скрываем контейнер выбора грейда в зависимости от состояния чекбокса
+        if (isAscendedCheckbox.checked) {
+            gradeSelectContainer.style.display = 'block'; // Показываем выбор грейда
+        } else {
+            gradeSelectContainer.style.display = 'none'; // Скрываем выбор грейда
+        }
+    }
+</script>
