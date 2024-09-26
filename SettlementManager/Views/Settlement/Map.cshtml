@@ -1,0 +1,119 @@
+@model Settlement
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Город из гексагонов</title>
+    <style>
+        .hex-grid {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            justify-content: center;
+            gap: 0; /* Убираем отступы */
+        }
+
+        .hex {
+            width: 120px;
+            height: 100px; /* 100 * sqrt(3) / 2 */
+            background-color: #6c757d;
+            position: relative;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .hex:hover {
+            background-color: #495057;
+            cursor: pointer;
+        }
+
+        .resident-icon {
+            width: 20px; /* Размер иконки резидента */
+            height: 20px;
+            background-color: #007bff; /* Синий квадрат как иконка */
+            border-radius: 50%; /* Круглая иконка */
+            position: absolute;
+            bottom: 5px; /* Расположение иконки внизу гекса */
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer; /* Курсор для указания интерактивности */
+            z-index: 1; /* Убедимся, что иконка выше */
+        }
+
+        .resident-tooltip {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 4px;
+            z-index: 10;
+            font-size: 12px;
+            white-space: nowrap;
+            transform: translate(-50%, -100%); /* Всплывающее окно будет выше иконки */
+        }
+
+        .resident-icon:hover + .resident-tooltip {
+            display: block; /* Показать подсказку при наведении на иконку */
+        }
+
+        .hex:hover .resident-tooltip {
+            display: block; /* Показывать подсказку при наведении на hex */
+        }
+    </style>
+    <script>
+        // JavaScript function to show all residents for a district
+        function showResidents(residents) {
+            // Clear the previous list
+            const residentList = document.getElementById('residentList');
+            residentList.innerHTML = '';
+
+            // Create list items for each resident
+            residents.forEach(resident => {
+                const listItem = document.createElement('li');
+                listItem.textContent = resident.Name; // Replace with the resident's name
+                residentList.appendChild(listItem);
+            });
+
+            // Show the modal or section
+            document.getElementById('residentModal').style.display = 'block';
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('residentModal').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+<h1>@Model.Name</h1>
+<div class="hex-grid">
+    @foreach (var district in Model.Districts)
+    {
+    <div class="hex" title="@district.Description">
+        <div>@district.Name</div>
+        @foreach (var resident in district.Residents)
+        {
+        <div class="resident-icon" onclick="showResidents(@Html.Raw(Json.Serialize(district.Residents)))" title="@resident.Name">
+            <div class="resident-tooltip">@resident.Name</div>
+        </div>
+        }
+    </div>
+    }
+</div>
+
+<!-- Modal or section for displaying residents -->
+<div id="residentModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border:1px solid #ccc; z-index:100;">
+    <h2>Residents</h2>
+    <ul id="residentList"></ul>
+    <button onclick="closeModal()">Close</button>
+</div>
+</body>
+</html>

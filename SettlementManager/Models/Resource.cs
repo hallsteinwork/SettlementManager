@@ -35,5 +35,22 @@ namespace SettlementManager.Models
                 _ => "Неизвестный"
             };
         }
+        public static string ToRussian2(this ResourceType type)
+        {
+            return type switch
+            {
+                ResourceType.Ordinary => "Обычный",
+                ResourceType.Special => "Специальный",
+                ResourceType.Rare => "Редкий",
+                ResourceType.Unique => "Уникальный",
+                ResourceType.Mystical => "Мистический",
+                ResourceType.Tool => "Инструмент",
+                _ => "Неизвестный"
+            };
+
+        }
+
     }
+
+
 }

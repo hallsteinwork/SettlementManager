@@ -1,192 +1,198 @@
 ﻿@using SettlementManager.ViewModels
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SettlementManager</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SettlementManager.styles.css" asp-append-version="true" />
-</head>
-<body>
-<header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>@ViewData["Title"] - SettlementManager</title>
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/SettlementManager.styles.css" asp-append-version="true"/>
+    </head>
+
+    <body>
+    <div>
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SettlementManager</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <a class="nav" asp-area="" asp-controller="Settlement" asp-action="Manage">SettlementManager</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+  
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
         <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SettlementManager</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
-    </nav>
-</header>
-<div class="container-fluid">
-    <div class="row">
-        @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && (Context.Request.RouteValues["action"]?.ToString() == "Manage" || Context.Request.RouteValues["action"]?.ToString() =="BuildDistricts"))
-        {
-        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-            <h5 class="sidebar-heading">Управление поселением</h5>
-            <div class="list-group">
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddResident" asp-route-settlementId="@ViewBag.SettlementId">
-                    Добавить поселенца
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddDistrict" asp-route-settlementId="@ViewBag.SettlementId">
-                    Добавить район
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="BuildDistricts" asp-route-settlementId="@ViewBag.SettlementId">
-                    Построить район
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="GetInfoSettlement" asp-route-settlementId="@ViewBag.SettlementId">
-                    Информация о поселении
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="GetResidents" asp-route-settlementId="@ViewBag.SettlementId">
-                    Поселенцы в районе
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddSpear" asp-route-settlementId="@ViewBag.SettlementId">
-                    Добавить копье
-                </a>
-                <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="SetAsSpearLeader" asp-route-settlementId="@ViewBag.SettlementId">
-                    Установить лидера копья
-                </a>
-            </div>
-        </nav>
-        }
-        <main role="main" class="@(Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && (Context.Request.RouteValues["action"]?.ToString() == "Manage" || Context.Request.RouteValues["action"]?.ToString() =="BuildDistricts") ? "col-md-9 ms-sm-auto col-lg-8" : "col-md-12")">
-            <div>
-                @RenderBody()
-            </div>
-        </main>
-        @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && Context.Request.RouteValues["action"]?.ToString() == "Manage")
-        {
-        <aside class="col-md-3 col-lg-2">
-            <h5 class="sidebar-heading">Статус Поселения</h5>
-            <table class="table table-bordered">
-                <tbody>
-                <tr>
-                    <td>Слава:</td>
-                    <td>@ViewBag.Glory ?? "Нет данных"</td>
-                </tr>
-                <tr>
-                    <td>Население:</td>
-                    <td>@ViewBag.TotalResidents ?? "Нет данных"</td>
-                </tr>
-                <tr>
-                    <td>Восходящих:</td>
-                    <td>@ViewBag.AscendedResidents ?? "Нет данных"</td>
-                </tr>
-                <tr>
-                    <td>Выхлоп за день:</td>
-                    <td>
-                        <ul>
-                            @if (ViewBag.OutputResources != null && ViewBag.OutputList != null && ViewBag.OutputList.Any())
+            <div class="row">
+                @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && (Context.Request.RouteValues["action"]?.ToString() == "Manage" || Context.Request.RouteValues["action"]?.ToString() == "BuildDistricts"))
+                {
+                    <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                        <h5 class="sidebar-heading">Управление поселением</h5>
+                        <div class="list-group">
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddResident" asp-route-settlementId="@ViewBag.SettlementId">
+                                Добавить поселенца
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddDistrict" asp-route-settlementId="@ViewBag.SettlementId">
+                                Добавить район
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="BuildDistricts" asp-route-settlementId="@ViewBag.SettlementId">
+                                Построить район
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="GetInfoSettlement" asp-route-settlementId="@ViewBag.SettlementId">
+                                Информация о поселении
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="Map" asp-route-settlementId="@ViewBag.SettlementId">
+                                Я карта, я карта!
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="AddSpear" asp-route-settlementId="@ViewBag.SettlementId">
+                                Добавить копье
+                            </a>
+                            <a class="list-group-item list-group-item-action" asp-controller="Settlement" asp-action="SetAsSpearLeader" asp-route-settlementId="@ViewBag.SettlementId">
+                                Установить лидера копья
+                            </a>
+                        </div>
+                    </nav>
+                }
+                <main role="main" class="@(Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && (Context.Request.RouteValues["action"]?.ToString() == "Manage" || Context.Request.RouteValues["action"]?.ToString() == "BuildDistricts") ? "col-md-9 ms-sm-auto col-lg-8" : "col-md-12")">
+                    <div>
+                        @RenderBody()
+                    </div>
+                </main>
+                @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && Context.Request.RouteValues["action"]?.ToString() == "Manage")
+                {
+                <aside class="col-md-3 col-lg-2">
+                    <h5 class="sidebar-heading">Статус Поселения</h5>
+                    <table class="table table-bordered">
+                        <tbody>
+                        <tr>
+                            <td>Слава:</td>
+                            <td>@ViewBag.Glory</td>
+                        </tr>
+                        <tr>
+                            <td>Население:</td>
+                            <td>@ViewBag.TotalResidents</td>
+                        </tr>
+                        <tr>
+                            <td>Восходящих:</td>
+                            <td>@ViewBag.AscendedResidents</td>
+                        </tr>
+                        <tr>
+                            <td>Общий ежедневный выхлоп:</td>
+                            <td>@ViewBag.TotalDailyOutput</td>
+                        </tr>
+                        <tr>
+                            <td>Общие потребляемые ресурсы:</td>
+                            <td>@ViewBag.TotalInputResources</td>
+                        </tr>
+                        <tr>
+                            <td>Звездной крови в день:</td>
+                            <td>@ViewBag.StarlightBloodDaily</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#skipDayModal">Пропустить день</button>
+                </aside>
+                }
+
+
+                @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && Context.Request.RouteValues["action"]?.ToString() == "BuildDistricts")
+                {
+                    <aside class="col-md-3 col-lg-2">
+                        <h5 class="sidebar-heading">Ресурсы поселения</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Количество</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @if (Model.SettlementResources != null)
                             {
-                            foreach (var output in ViewBag.OutputList)
-                            {
-                            <li>@output.Type ?? "Неизвестный тип": @output.Amount ?? "Нет данных"</li>
-                            }
+                                foreach (var resource in Model.SettlementResources)
+                                {
+                                    <tr>
+                                        <td>@resource.Name</td>
+                                        <td>@resource.Amount</td>
+                                    </tr>
+                                }
                             }
                             else
                             {
-                            <li>Нет данных о выхлопе</li>
+                                <tr>
+                                    <td colspan="3">Нет данных о ресурсах</td>
+                                </tr>
                             }
-                        </ul>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Звездной крови в день:</td>
-                    <td>@ViewBag.StarlightBloodDaily ?? "Нет данных"</td>
-                </tr>
-                </tbody>
-            </table>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#skipDayModal">Пропустить день</button>
-        </aside>
-        }
-        @if (Context.Request.RouteValues["controller"]?.ToString() == "Settlement" && Context.Request.RouteValues["action"]?.ToString() == "BuildDistricts")
-        {
-        <aside class="col-md-3 col-lg-2">
-            <h5 class="sidebar-heading">Ресурсы поселения</h5>
-            <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Количество</th>
-                </tr>
-                </thead>
-                <tbody>
-                @if (Model.SettlementResources != null)
-                {
-                foreach (var resource in Model.SettlementResources)
-                {
-                <tr>
-                    <td>@resource.Name</td>
-                    <td>@resource.Amount</td>
-                </tr>
+                            </tbody>
+                        </table>
+                    </aside>
                 }
-                }
-                else
-                {
-                <tr>
-                    <td colspan="3">Нет данных о ресурсах</td>
-                </tr>
-                }
-                </tbody>
-            </table>
-        </aside>
-        }
-        
-    </div>
-</div>
-
-<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2024 - SHIZORUNER
-    </div>
-</footer>
-
-<!-- Modal for Skip Day -->
-<div class="modal fade" id="skipDayModal" tabindex="-1" aria-labelledby="skipDayModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="skipDayModalLabel">Введите количество дней для пропуска</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input type="number" class="form-control" id="daysToSkip" placeholder="Количество дней" min="1" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                <button type="button" class="btn btn-primary" id="skipDayButton">Пропустить</button>
             </div>
         </div>
     </div>
-</div>
+    @*     <body> *@
+    @*     <div class="container-fluid d-flex flex-column"> *@
+    @* <header></header> *@
+    @*         <main role="main" class="flex-grow-1"></main> *@
+    @*         <footer class="border-top footer text-muted"> *@
+    @*             <div class="container"> *@
+    @*                 &copy; 2024 - SHIZORUNER *@
+    @*             </div> *@
+    @*         </footer> *@
+    @*     </div> *@
+    @*     </body> *@
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
-@await RenderSectionAsync("Scripts", required: false)
+        <!-- Modal for Skip Day -->
+        <div class="modal fade" id="skipDayModal" tabindex="-1" aria-labelledby="skipDayModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="skipDayModalLabel">Введите количество дней для пропуска</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="number" class="form-control" id="daysToSkip" placeholder="Количество дней" min="1"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="btn btn-primary" id="skipDayButton">Пропустить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<script>
-    $(document).ready(function () {
-        $("#skipDayButton").click(function () {
-            var days = $("#daysToSkip").val();
-            $.ajax({
-                url: '@Url.Action("SkipDay", "Settlement")', // Замените на правильный путь к вашему действию
-                type: 'POST',
-                data: { days: days },
-                success: function (result) {
-                    // Обработка успешного ответа
-                    alert("Дни пропущены: " + days);
-                    location.reload(); // Перезагрузить страницу после пропуска дней
-                },
-                error: function (xhr, status, error) {
-                    alert("Ошибка: " + error);
-                }
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        @await RenderSectionAsync("Scripts", required: false)
+
+        <script>
+            $(document).ready(function () {
+                $("#skipDayButton").click(function () {
+                    var days = $("#daysToSkip").val();
+                    $.ajax({
+                        url: '@Url.Action("SkipDay", "Settlement")', // Замените на правильный путь к вашему действию
+                        type: 'POST',
+                        data: { days: days },
+                        success: function (result) {
+                            // Обработка успешного ответа
+                            alert("Дни пропущены: " + days);
+                            location.reload(); // Перезагрузить страницу после пропуска дней
+                        },
+                        error: function (xhr, status, error) {
+                            alert("Ошибка: " + error);
+                        }
+                    });
+                });
             });
-        });
-    });
-</script>
-</body>
+        </script>
+    </body>
 </html>

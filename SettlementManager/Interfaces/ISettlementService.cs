@@ -29,5 +29,9 @@ namespace SettlementManager.Interfaces
         Task<Resource?> GetResourceByNameAndTypeAsync(int settlementId, string resourceName, ResourceType resourceType);
         Task UpdateResourceAsync(Resource existingResource);
         Task SaveSettlementsAsync(List<Settlement> settlements);
+        Task<List<Resident>> LoadResidents(int settlementId);
+        Task<Resource> GetResourceByTypeAndSettlement(string output, int settlementId);
+
+        Task UpdateDailyOutput(int settlementId);
     }
 }

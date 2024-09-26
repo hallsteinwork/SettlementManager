@@ -13,7 +13,7 @@ namespace SettlementManager.Services
     {
         // Updated file paths to point to the DataFiles directory
         private readonly string _dataDirectory = Path.Combine(Directory.GetCurrentDirectory(), "DataFiles");
-        private readonly string _settlementFilePath = Path.Combine("DataFiles", "settlements.json");
+        public readonly string _settlementFilePath = Path.Combine("DataFiles", "settlements.json");
         private readonly string _districtFilePath = Path.Combine("DataFiles", "districts.json");
         private readonly string _residentFilePath = Path.Combine("DataFiles", "residents.json");
         private readonly string _spearFilePath = Path.Combine("DataFiles", "spears.json");
@@ -64,10 +64,14 @@ namespace SettlementManager.Services
         
         public async Task<List<District>> GetDistrictsForSetllement(int settlementId)
         {
-            var settlements = await LoadSettlements();
+            // Load from JSON
+            var settlements = await GetAllSettlements(); // Your method to load settlements
             var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
+    
+            // Ensure districts are populated correctly
             return settlement?.Districts ?? new List<District>();
         }
+
 
 
         public async Task<List<District>> GetAllDistrictsAsync()
@@ -111,52 +115,61 @@ namespace SettlementManager.Services
             await SaveToFile(_settlementFilePath, settlements);
         } 
         public async Task AddResourceAsync(int settlementId, Resource resource)
-        {
-            var settlements = await LoadSettlements();
-            var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
-            
-            if (settlement != null)
             {
-                // Check for tools with the same name
-                if (resource.IsTool)
+                var settlements = await LoadSettlements();
+                var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
+                
+                if (settlement != null)
                 {
-                    // Find if any tool with the same name exists
-                    var existingTool = settlement.Resources.FirstOrDefault(r => r.IsTool && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
-                    if (existingTool != null)
+                    // Найти максимальный существующий идентификатор
+                    int newResourceId = settlement.Resources.Count > 0 
+                        ? settlement.Resources.Max(r => r.Id) + 1 
+                        : 1; // Если нет ресурсов, начинаем с 1
+
+                    // Обработка стандартных ресурсов
+                    if (!resource.IsTool)
                     {
-                        existingTool.Amount += resource.Amount; // Update existing tool amount
-                        _logger.LogInformation($"Updated existing tool: {existingTool.Name}, New Amount: {existingTool.Amount}");
+                        var existingResource = settlement.Resources.FirstOrDefault(r => r.Type == resource.Type && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
+
+                        if (existingResource != null)
+                        {
+                            existingResource.Amount += resource.Amount; // Суммируем количество
+                            _logger.LogInformation($"Updated existing resource: {existingResource.Name}, New Amount: {existingResource.Amount}");
+                        }
+                        else
+                        {
+                            resource.Id = newResourceId; // Присваиваем новый идентификатор
+                            settlement.Resources.Add(resource); // Добавляем новый стандартный ресурс
+                            _logger.LogInformation($"Added new resource: {resource.Name}, Amount: {resource.Amount}, ID: {resource.Id}");
+                        }
                     }
                     else
                     {
-                        settlement.Resources.Add(resource); // Add new tool
-                        _logger.LogInformation($"Added new tool: {resource.Name}, Amount: {resource.Amount}");
+                        // Обработка инструментов
+                        var existingTool = settlement.Resources.FirstOrDefault(r => r.IsTool && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
+
+                        if (existingTool != null)
+                        {
+                            existingTool.Amount += resource.Amount; // Суммируем количество
+                            _logger.LogInformation($"Updated existing tool: {existingTool.Name}, New Amount: {existingTool.Amount}");
+                        }
+                        else
+                        {
+                            resource.Id = newResourceId; // Присваиваем новый идентификатор для инструмента
+                            settlement.Resources.Add(resource); // Добавляем новый инструмент
+                            _logger.LogInformation($"Added new tool: {resource.Name}, Amount: {resource.Amount}, ID: {resource.Id}");
+                        }
                     }
+
+                    // Сохранить обновленный список поселений
+                    await SaveToFile(_settlementFilePath, settlements);
                 }
                 else
                 {
-                    // Handle non-tool resources
-                    var existingResource = settlement.Resources.FirstOrDefault(r => r.Type == resource.Type && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
-                    if (existingResource != null)
-                    {
-                        existingResource.Amount += resource.Amount; // Update existing resource amount
-                        _logger.LogInformation($"Updated existing resource: {existingResource.Name}, New Amount: {existingResource.Amount}");
-                    }
-                    else
-                    {
-                        settlement.Resources.Add(resource); // Add new resource
-                        _logger.LogInformation($"Added new resource: {resource.Name}, Amount: {resource.Amount}");
-                    }
+                    _logger.LogWarning("Settlement not found for ID: {SettlementId}", settlementId);
                 }
+            }
 
-                // Save the updated list of settlements
-                await SaveToFile(_settlementFilePath, settlements);
-            }
-            else
-            {
-                _logger.LogWarning("Settlement not found for ID: {SettlementId}", settlementId);
-            }
-        }
 
         public async Task<Resource?> GetResourceByNameAndTypeAsync(int settlementId, string name, ResourceType type)
         {
@@ -209,6 +222,30 @@ namespace SettlementManager.Services
             }
         }
 
+        public async Task<List<Resident>> LoadResidents(int settlementId)
+        {
+            // Загрузка всех поселений
+            var settlements = await LoadSettlements();
+
+            // Находим нужное поселение
+            var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
+        
+            // Если поселение не найдено, возвращаем пустой список
+            if (settlement == null)
+            {
+                return new List<Resident>();
+            }
+
+            // Возвращаем список резидентов из найденного поселения
+            return settlement.Residents ?? new List<Resident>();
+        }
+
+        public async Task<Resource> GetResourceByTypeAndSettlement(string resourceType, int settlementId)
+        {
+            var resources = await LoadResourcesForSettlement(settlementId);
+            return resources.FirstOrDefault(r => r.Type.ToString() == resourceType);
+        }
+
 
         private async Task<List<Resource>> LoadResourcesForSettlement(int settlementId)
         {
@@ -258,17 +295,17 @@ namespace SettlementManager.Services
         }
         public async Task AddResident(Resident resident, int settlementId)
         {
-            // Ensure SettlementId is set correctly
-            resident.SettlementId = settlementId; // Add this line to ensure the SettlementId is set
+            // Убедитесь, что SettlementId установлен правильно
+            resident.SettlementId = settlementId;
 
-            var residents = await LoadResidents();
+            var residents = await LoadResidents(settlementId); // Загрузите резидентов из данного поселения
 
             // Устанавливаем уникальный ID для нового поселенца
             resident.Id = residents.Any() ? residents.Max(r => r.Id) + 1 : 1;
 
             // Добавляем нового поселенца в список
             residents.Add(resident);
-    
+
             // Сохраняем поселенцев в файл
             await SaveToFile(_residentFilePath, residents);
 
@@ -278,11 +315,60 @@ namespace SettlementManager.Services
 
             if (settlement != null)
             {
-                settlement.Residents.Add(resident); // Добавляем нового поселенца в список жителей поселения
-                await SaveToFile(_settlementFilePath, settlements); // Сохраняем обновлённое поселение
+                // Добавляем нового поселенца в список жителей поселения
+                settlement.Residents.Add(resident); // Здесь добавляем сам объект Resident
+
+                // Проверяем, установлен ли DistrictId
+                if (resident.DistrictId > 0) // Предполагаем, что DistrictId больше 0, если установлен
+                {
+                    // Находим дистрикт по его ID
+                    var district = settlement.Districts.FirstOrDefault(d => d.Id == resident.DistrictId);
+                    if (district != null)
+                    {
+                        // Создаем временный список ID резидентов, если его еще нет
+                        if (district.ResidentsIds == null)
+                        {
+                            district.ResidentsIds = new List<int>(); // Предполагаем, что это поле для хранения ID резидентов
+                        }
+
+                        // Добавляем ID резидента в список резидентов дистрикта
+                        district.ResidentsIds.Add(resident.Id); // Используем список ID резидентов
+                    }
+                }
+
+                // Сохраняем обновлённое поселение
+                await SaveToFile(_settlementFilePath, settlements);
             }
         }
 
+
+// Assuming you have a method to get all spears for a settlement
+        public async Task<int> CalculateStarlightBloodDaily(int settlementId)
+        {
+            var settlement = await GetInfoSettlement(settlementId);
+            if (settlement == null)
+                return 0;
+
+            int totalDrops = 0;
+
+            // Loop through each spear in the settlement
+            foreach (var spear in settlement.Spears)
+            {
+                int baseDrops = GetBaseDrops(spear.Grade);
+                int additionalDrops = spear.Residents.Count(r => r.IsAscended) * 5; // +5 drops for each ascended resident
+
+                // Total drops for this spear
+                totalDrops += baseDrops + additionalDrops;
+            }
+
+            return totalDrops;
+        }
+
+        private int GetBaseDrops(int spearGrade)
+        {
+            // Base drops increase by 1.5 times for each level
+            return (int)(4 * Math.Pow(1.5, spearGrade));
+        }
 
 
         public async Task SetResidentToDistrict(int residentId, int districtId)
@@ -344,6 +430,63 @@ namespace SettlementManager.Services
             var residents = await LoadResidents();
             return residents.Where(r => r.DistrictId == districtId).ToList();
         }
+        
+public async Task UpdateDailyOutput(int settlementId)
+{
+    // Load settlement and districts data
+    var settlements = await LoadSettlements();
+    var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
+    if (settlement == null) return;
+
+    var districts = await LoadDistricts();
+    var settlementDistricts = districts.Where(d => d.SettlementId == settlementId).ToList();
+
+    // Initialize a dictionary to accumulate resource balances
+    var resourceBalances = new Dictionary<ResourceType, int>();
+
+    foreach (var district in settlementDistricts)
+    {
+        // Process Daily Output Resources
+        if (district.DailyOutput != null)
+        {
+            foreach (var output in district.DailyOutput)
+            {
+                // Add to resource balances based on Daily Output
+                if (resourceBalances.ContainsKey(output.Key))
+                    resourceBalances[output.Key] += output.Value; // Accumulate output
+                else
+                    resourceBalances[output.Key] = output.Value; // Initialize with current output
+            }
+        }
+
+        // Process Input Resources
+        if (district.InputResources != null)
+        {
+            foreach (var input in district.InputResources)
+            {
+                if (resourceBalances.ContainsKey(input.Type))
+                    resourceBalances[input.Type] -= input.Quantity; // Deduct input from balances
+                else
+                    resourceBalances[input.Type] = -input.Quantity; // Initialize with negative input
+            }
+        }
+    }
+
+    // Update the settlement's resources with the calculated balances
+    foreach (var resourceBalance in resourceBalances)
+    {
+        var existingResource = settlement.Resources.FirstOrDefault(r => r.Type == resourceBalance.Key);
+        if (existingResource != null)
+            existingResource.Amount += resourceBalance.Value; // Update existing resource amount
+        else
+            settlement.Resources.Add(new Resource { Type = resourceBalance.Key, Amount = resourceBalance.Value }); // Add new resource
+    }
+
+    // Save the updated settlement data
+    await SaveToFile(_settlementFilePath, settlements);
+}
+
+
        
         private async Task<T> LoadFromFile<T>(string filePath)
         {
@@ -397,6 +540,7 @@ namespace SettlementManager.Services
             return JsonConvert.DeserializeObject<List<District>>(jsonData) ?? new List<District>();
         }
 
+        
         public async Task<List<Resident>> LoadResidents()
         {
             if (!File.Exists(_residentFilePath))

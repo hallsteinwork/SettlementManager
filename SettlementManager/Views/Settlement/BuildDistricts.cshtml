@@ -22,7 +22,8 @@
         <td>
             <a href="#" class="district-name" data-toggle="modal" data-target="#buffModal"
                data-buff="@district.BuffForPlayers"
-               data-output="@string.Join(", ", district.Output)">@district.Name</a>
+               data-output="@string.Join(", ", district.Output?.Where(o => !string.IsNullOrEmpty(o)) ?? Enumerable.Empty<string>())">@district.Name</a>
+
         </td>
         <td>@district.Description</td>
         <td>

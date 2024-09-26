@@ -5,13 +5,17 @@
     "SettlementId": 0,
     "Residents": [],
     "ProductionMode": "",
-    "Output": [],
     "Description": "Это центральное место любой колонии, здесь в панели управления можно улучшать поселение.",
     "Grade": 0,
     "BuffForPlayers": "",
     "DateCreated": "2024-09-24T13:00:23.9614573Z",
     "RequiredResources": [],
-    "RequiredTools": []
+    "RequiredTools": [],
+    "ResidentsIds": null,
+    "OutputResource": null,
+    "InputResources": null,
+    "DailyOutput": {},
+    "Output": []
   },
   {
     "Id": 0,
@@ -19,7 +23,6 @@
     "SettlementId": 0,
     "Residents": [],
     "ProductionMode": "Обычный",
-    "Output": [],
     "Description": "Место, где с помощью Репликатора создаются простенькие предметы, которые удовлетворяют потребности маленького поселения.",
     "Grade": 0,
     "BuffForPlayers": "Возможность создавать ресурсы по репликационным схемам",
@@ -36,6 +39,38 @@
     ],
     "RequiredTools": [
       "Малый Промышленный Репликатор"
-    ]
+    ],
+    "ResidentsIds": null,
+    "OutputResource": null,
+    "InputResources": null,
+    "DailyOutput": {},
+    "Output": []
+  },
+  {
+    "Id": 0,
+    "Name": "123123",
+    "SettlementId": 0,
+    "Residents": [],
+    "ProductionMode": "13131",
+    "Description": "123123",
+    "Grade": 0,
+    "BuffForPlayers": "123123",
+    "DateCreated": "2024-09-26T12:47:51.0370779Z",
+    "RequiredResources": [
+      {
+        "Type": 0,
+        "Quantity": 123123
+      }
+    ],
+    "RequiredTools": [
+      "123"
+    ],
+    "ResidentsIds": null,
+    "OutputResource": null,
+    "InputResources": null,
+    "DailyOutput": {
+      "Ordinary": 234
+    },
+    "Output": null
   }
 ]

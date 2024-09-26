@@ -3,6 +3,10 @@ namespace SettlementManager.Models
     public class Resident
     {
         public int Id { get; set; }
+        
+        public int Coins { get; set; } // Star Coins
+        
+        public int Money { get; set; } // Coins
         public string Name { get; set; }
         public int SettlementId { get; set; } // Связь с поселением
         public string Occupation { get; set; } // Профессия

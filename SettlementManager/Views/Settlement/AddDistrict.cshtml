@@ -65,11 +65,30 @@ ViewData["Title"] = "Add District";
 
     <ul id="toolList" class="list-group mt-2"></ul>
 
+    <input type="hidden" id="outputsList" name="outputsList" />
+
+    @* Existing form fields for District properties *@
+    <!-- Other input fields for district properties remain unchanged -->
+
+    <div class="form-group">
+        <label>Select Output Resource Type</label>
+        <select id="outputResourceSelect" class="form-control">
+            @foreach (var resource in Enum.GetValues(typeof(SettlementManager.Models.ResourceType)))
+            {
+            <option value="@resource">@resource</option>
+            }
+        </select>
+        <input type="number" id="outputResourceQuantity" class="form-control mt-2" placeholder="Output Quantity" />
+        <button type="button" id="addOutputResource" class="btn btn-secondary mt-2">Add Output Resource</button>
+    </div>
+
+    <ul id="outputResourceList" class="list-group mt-2"></ul>
+
     <button type="submit" class="btn btn-primary mt-4">Submit</button>
 </form>
 
 @section Scripts {
-<script>
+    <script>
     const resourceList = [];
     const toolList = [];
 
@@ -145,10 +164,48 @@ ViewData["Title"] = "Add District";
             toolListElement.appendChild(li);
         });
     }
+    
+    
+        const outputList = [];
 
-    function updateHiddenFields() {
+        document.getElementById("addOutputResource").addEventListener("click", () => {
+        const outputResourceType = document.getElementById("outputResourceSelect").value;
+        const outputQuantity = parseInt(document.getElementById("outputResourceQuantity").value);
+
+        if (outputQuantity && outputResourceType && !outputList.some(item => item.type === outputResourceType)) {
+        outputList.push({ type: outputResourceType, quantity: outputQuantity });
+        updateOutputList();
+        updateHiddenFields();
+    }
+    });
+
+        function updateOutputList() {
+        const outputListElement = document.getElementById("outputResourceList");
+        outputListElement.innerHTML = "";
+        outputList.forEach((output, index) => {
+        const li = document.createElement("li");
+        li.textContent = `${output.type} - ${output.quantity}`;
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.className = "btn btn-sm btn-danger";
+        removeButton.onclick = () => {
+        outputList.splice(index, 1);
+        updateOutputList();
+        updateHiddenFields();
+    };
+
+        li.appendChild(removeButton);
+        outputListElement.appendChild(li);
+    });
+    }
+
+        function updateHiddenFields() {
         document.getElementById("resourcesList").value = JSON.stringify(resourceList);
         document.getElementById("toolsList").value = JSON.stringify(toolList);
+        document.getElementById("outputsList").value = JSON.stringify(outputList); // Add this line
     }
+
 </script>
 }

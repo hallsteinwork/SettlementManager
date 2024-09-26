@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace SettlementManager.Models;
 
 public class Settlement
@@ -5,10 +7,13 @@ public class Settlement
     public int Id { get; set; }
     public string Name { get; set; } // Название поселения
     public string Description { get; set; }
+
+    public int Glory { get; set; } = 0;
     public List<District> Districts { get; set; } = new List<District>(); // Список районов
     public List<Resident> Residents { get; set; } = new List<Resident>(); // Список поселенцев
     public List<Resource> Resources { get; set; } = new List<Resource>();
     public DateTime DateCreated { get; set; } = DateTime.UtcNow; // Дата создания
+    public List<Spear> Spears { get; set; } = new List<Spear>();
 
     public bool ResourcesAreSufficient(District district)
     {

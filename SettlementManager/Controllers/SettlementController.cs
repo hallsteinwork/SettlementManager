@@ -39,91 +39,175 @@ namespace SettlementManager.Controllers
             }
         }
 
-        public async Task<IActionResult> Manage(int settlementId)
+public async Task<IActionResult> Manage(int settlementId)
+{
+    _logger.LogInformation($"Selected Settlement ID from session: {settlementId}");
+    HttpContext.Session.SetInt32("SelectedSettlementId", settlementId);
+
+    var settlement = await _settlementService.GetInfoSettlement(settlementId);
+    if (settlement == null)
+    {
+        return NotFound();
+    }
+
+    // Set settlement data for the view
+    ViewBag.Glory = settlement.Glory;
+    ViewBag.TotalResidents = settlement.Residents.Count;
+    ViewBag.AscendedResidents = settlement.Residents.Count(r => r.IsAscended);
+
+    // Retrieve all districts related to the settlement
+    var districts = await _settlementService.GetDistrictsForSetllement(settlementId);
+
+    // Calculate total Starlight Blood Daily
+    ViewBag.StarlightBloodDaily = await CalculateStarlightBloodDaily(settlement.Id);
+
+    // Dictionary to store total daily outputs by resource type
+    var totalDailyOutputs = new Dictionary<ResourceType, int>(); // Change to ResourceType
+
+    // Collect daily output and input resources from all districts
+    foreach (var district in districts)
+    {
+        // Summing up daily outputs by type
+        if (district.DailyOutput != null)
         {
-            _logger.LogInformation($"Selected Settlement ID from session: {settlementId}");
-            HttpContext.Session.SetInt32("SelectedSettlementId", settlementId);
-
-            var settlement = await _settlementService.GetInfoSettlement(settlementId);
-            if (settlement == null)
+            foreach (var output in district.DailyOutput)
             {
-                return NotFound();
-            }
-
-            ViewData["Title"] = "Управление поселением: " + settlement.Name;
-            return View(settlement);
-        }
-                        
-        [HttpPost]
-        public async Task<IActionResult> AddResource(Resource resource)
-        {
-            var settlementIdNullable = HttpContext.Session.GetInt32("SelectedSettlementId");
-            _logger.LogInformation($"Selected Settlement ID from session: {settlementIdNullable}");
-
-
-            // Validate settlementId
-            if (settlementIdNullable == null)
-            {
-                return Json(new { success = false, message = "No selected settlement." });
-            }
-
-            int settlementId = settlementIdNullable.Value;
-            resource.SettlementId = settlementId;
-
-            _logger.LogInformation($"Settlement ID: {settlementId}");
-
-            var settlement = await _settlementService.GetInfoSettlement(settlementId);
-            if (settlement == null)
-            {
-                return Json(new { success = false, message = "Settlement not found." });
-            }
-
-            try
-            {
-                // Handle standard resources (those that need to be summed)
-                if (!resource.IsTool)
+                if (totalDailyOutputs.ContainsKey((ResourceType)output.Key)) // Cast to ResourceType
                 {
-                    var existingResource = settlement.Resources.FirstOrDefault(r => r.Type == resource.Type && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
-                    
-                    if (existingResource != null)
-                    {
-                        existingResource.Amount += resource.Amount; // Sum the amount
-                        await _settlementService.UpdateResourceAsync(existingResource); // Ensure to have an update method
-                        _logger.LogInformation($"Updated existing resource: {existingResource.Name}, New Amount: {existingResource.Amount}");
-                    }
-                    else
-                    {
-                        // Add new standard resource
-                        await _settlementService.AddResourceAsync(settlementId, resource);
-                    }
+                    totalDailyOutputs[(ResourceType)output.Key] += output.Value; // Add the amount of each output resource
                 }
                 else
                 {
-                    // Handle tools (unique by name, can sum if names are the same)
-                    var existingTool = settlement.Resources.FirstOrDefault(r => r.IsTool && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
-
-                    if (existingTool != null)
-                    {
-                        existingTool.Amount += resource.Amount; // Sum the amount
-                        await _settlementService.UpdateResourceAsync(existingTool); // Ensure to have an update method
-                        _logger.LogInformation($"Updated existing tool: {existingTool.Name}, New Amount: {existingTool.Amount}");
-                    }
-                    else
-                    {
-                        // Add new tool as it has a unique name
-                        await _settlementService.AddResourceAsync(settlementId, resource);
-                    }
+                    totalDailyOutputs[(ResourceType)output.Key] = output.Value; // Initialize if not exists
                 }
-
-                // Redirect to the Manage action for the settlement
-                return RedirectToAction("Manage", "Settlement", new { settlementId = settlementId });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding resource.");
-                return Json(new { success = false, message = "An error occurred while adding the resource." });
             }
         }
+        
+        // Summing up input resources
+        if (district.InputResources != null)
+        {
+            foreach (var inputResource in district.InputResources)
+            {
+                if (totalDailyOutputs.ContainsKey(inputResource.Type)) // Type is already ResourceType
+                {
+                    totalDailyOutputs[inputResource.Type] -= inputResource.Quantity; // Deduct the quantity of each input resource
+                }
+                else
+                {
+                    totalDailyOutputs[inputResource.Type] = -inputResource.Quantity; // Initialize with negative if not exists
+                }
+            }
+        }
+    }
+
+    // Setting totals to ViewBag for rendering
+    ViewBag.TotalDailyOutputs = totalDailyOutputs;
+
+    ViewData["Title"] = "Управление поселением: " + settlement.Name;
+    return View(settlement);
+}
+
+
+
+// Assuming you have a method to get all spears for a settlement
+        public async Task<int> CalculateStarlightBloodDaily(int settlementId)
+        {
+            var settlement = await _settlementService.GetInfoSettlement(settlementId);
+            if (settlement == null)
+                return 0;
+
+            int totalDrops = 0;
+
+            // Loop through each spear in the settlement
+            foreach (var spear in settlement.Spears)
+            {
+                int baseDrops = GetBaseDrops(spear.Grade);
+                int additionalDrops = spear.Residents.Count(r => r.IsAscended) * 5; // +5 drops for each ascended resident
+
+                // Total drops for this spear
+                totalDrops += baseDrops + additionalDrops;
+            }
+
+            return totalDrops;
+        }
+
+        private int GetBaseDrops(int spearGrade)
+        {
+            // Base drops increase by 1.5 times for each level
+            return (int)(4 * Math.Pow(1.5, spearGrade));
+        }
+
+
+        [HttpPost]
+public async Task<IActionResult> AddResource(Resource resource)
+{
+    var settlementIdNullable = HttpContext.Session.GetInt32("SelectedSettlementId");
+    _logger.LogInformation($"Selected Settlement ID from session: {settlementIdNullable}");
+
+    // Validate settlementId
+    if (settlementIdNullable == null)
+    {
+        return Json(new { success = false, message = "No selected settlement." });
+    }
+
+    int settlementId = settlementIdNullable.Value;
+    resource.SettlementId = settlementId;
+
+    _logger.LogInformation($"Settlement ID: {settlementId}");
+
+    var settlement = await _settlementService.GetInfoSettlement(settlementId);
+    if (settlement == null)
+    {
+        return Json(new { success = false, message = "Settlement not found." });
+    }
+
+    try
+    {
+        // Обработка стандартных ресурсов
+        if (!resource.IsTool)
+        {
+            var existingResource = settlement.Resources.FirstOrDefault(r => r.Type == resource.Type && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (existingResource != null)
+            {
+                existingResource.Amount += resource.Amount; // Суммируем количество
+                await _settlementService.UpdateResourceAsync(existingResource); // Обновляем ресурс
+                _logger.LogInformation($"Updated existing resource: {existingResource.Name}, New Amount: {existingResource.Amount}");
+            }
+            else
+            {
+                // Добавляем новый стандартный ресурс
+                await _settlementService.AddResourceAsync(settlementId, resource);
+            }
+        }
+        else
+        {
+            // Обработка инструментов
+            var existingTool = settlement.Resources.FirstOrDefault(r => r.IsTool && r.Name.Equals(resource.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (existingTool != null)
+            {
+                existingTool.Amount += resource.Amount; // Суммируем количество
+                await _settlementService.UpdateResourceAsync(existingTool); // Обновляем инструмент
+                _logger.LogInformation($"Updated existing tool: {existingTool.Name}, New Amount: {existingTool.Amount}");
+            }
+            else
+            {
+                // Добавляем новый инструмент
+                await _settlementService.AddResourceAsync(settlementId, resource);
+            }
+        }
+
+        // Переход к действию Manage для поселения
+        return RedirectToAction("Manage", "Settlement", new { settlementId = settlementId });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error adding resource.");
+        return Json(new { success = false, message = "An error occurred while adding the resource." });
+    }
+}
+
 
         // GET: /Settlement/Create
         public IActionResult AddSettlement()
@@ -188,42 +272,69 @@ namespace SettlementManager.Controllers
             return View(new District());
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddDistrict(District district, string resourcesList, string toolsList)
+     [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> AddDistrict(District district, string resourcesList, string toolsList, string outputsList)
+{
+    var settlementId = HttpContext.Session.GetInt32("SelectedSettlementId");
+    if (!settlementId.HasValue)
+    {
+        return NotFound();
+    }
+
+    if (!ModelState.IsValid)
+    {
+        var errors = ModelState.Values.SelectMany(v => v.Errors);
+        foreach (var error in errors)
         {
-            var settlementId = HttpContext.Session.GetInt32("SelectedSettlementId");
-            if (!settlementId.HasValue)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    if (!string.IsNullOrEmpty(resourcesList))
-                    {
-                        district.RequiredResources = JsonConvert.DeserializeObject<List<RequiredResource>>(resourcesList);
-                    }
-
-                    if (!string.IsNullOrEmpty(toolsList))
-                    {
-                        district.RequiredTools = JsonConvert.DeserializeObject<List<string>>(toolsList);
-                    }
-
-                    district.SettlementId = settlementId.Value; 
-                    await _settlementService.SaveDistrictAsync(district);
-                    return RedirectToAction("Manage", new { settlementId = settlementId.Value });
-                }
-                catch (JsonException jsonEx)
-                {
-                    Console.WriteLine("JSON deserialization error: " + jsonEx.Message);
-                    ModelState.AddModelError("", "There was an error processing your request. Please check the data and try again.");
-                }
-            }
-            return View(district);
+            Console.WriteLine(error.ErrorMessage);
         }
+    }
+
+    try
+    {
+        // Deserialize required resources and tools
+        if (!string.IsNullOrEmpty(resourcesList))
+        {
+            district.RequiredResources = JsonConvert.DeserializeObject<List<RequiredResource>>(resourcesList);
+        }
+
+        if (!string.IsNullOrEmpty(toolsList))
+        {
+            district.RequiredTools = JsonConvert.DeserializeObject<List<string>>(toolsList);
+        }
+
+        // Deserialize the output resources
+        if (!string.IsNullOrEmpty(outputsList))
+        {
+            var outputResources = JsonConvert.DeserializeObject<List<RequiredResource>>(outputsList);
+            district.DailyOutput = outputResources.ToDictionary(
+                output => (ResourceType)Enum.Parse(typeof(ResourceType), output.Type.ToString()), 
+                output => output.Quantity
+            );
+        }
+
+        district.SettlementId = settlementId.Value;
+
+        // Save the district
+        await _settlementService.SaveDistrictAsync(district);
+        return RedirectToAction("Manage", new { settlementId = settlementId.Value });
+    }
+    catch (JsonException jsonEx)
+    {
+        Console.WriteLine("JSON deserialization error: " + jsonEx.Message);
+        ModelState.AddModelError("", "There was an error processing your request. Please check the data and try again.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("General error: " + ex.Message);
+        ModelState.AddModelError("", "An unexpected error occurred. Please try again.");
+    }
+
+    return View(district);
+}
+
+
 
         public async Task<IActionResult> BuildDistricts()
         {
@@ -277,7 +388,7 @@ namespace SettlementManager.Controllers
                 _logger.LogWarning("Selected settlement ID not found in session.");
                 return NotFound();
             }
-        
+
             // Load the existing districts from the JSON file
             var districts = await _settlementService.GetDistricts();
             
@@ -288,7 +399,7 @@ namespace SettlementManager.Controllers
                 _logger.LogWarning($"District '{districtName}' not found for settlement ID {settlementId.Value}.");
                 return NotFound();
             }
-        
+
             var settlements = await _settlementService.GetAllSettlements();
             var currentSettlement = settlements.FirstOrDefault(s => s.Id == settlementId.Value);
             if (currentSettlement == null)
@@ -296,7 +407,7 @@ namespace SettlementManager.Controllers
                 _logger.LogWarning($"Current settlement not found for ID {settlementId.Value}.");
                 return NotFound();
             }
-        
+
             // Check if resources and tools are available
             bool canBuild = CheckResourcesAndTools(currentSettlement, district.RequiredResources, district.RequiredTools);
             if (!canBuild)
@@ -304,7 +415,7 @@ namespace SettlementManager.Controllers
                 _logger.LogWarning("Insufficient resources or tools to build the district.");
                 return Json(new { success = false, message = "Недостаточно ресурсов или инструментов для строительства района." });
             }
-        
+
             // Deduct the required resources from the settlement
             foreach (var reqResource in district.RequiredResources)
             {
@@ -315,7 +426,7 @@ namespace SettlementManager.Controllers
                     _logger.LogInformation($"Deducted {reqResource.Quantity} of {resource.Type} from settlement ID {settlementId.Value}.");
                 }
             }
-        
+
             // Deduct the required tools from the settlement
             foreach (var tool in district.RequiredTools)
             {
@@ -326,17 +437,58 @@ namespace SettlementManager.Controllers
                     _logger.LogInformation($"Deducted one of tool '{tool}' from settlement ID {settlementId.Value}.");
                 }
             }
-        
+
+            // Assign the district ID based on the current count of districts in the settlement
+            district.Id = currentSettlement.Districts.Count > 0 ? currentSettlement.Districts.Max(d => d.Id) + 1 : 0;
+
+            // Clear the requirements as they are no longer needed
+            district.RequiredResources.Clear();
+            district.RequiredTools.Clear();
+
             // Add the new district to the settlement
             currentSettlement.Districts.Add(district);
-            _logger.LogInformation($"Added district '{district.Name}' to settlement ID {settlementId.Value}.");
-        
+            _logger.LogInformation($"Added district '{district.Name}' with ID {district.Id} to settlement ID {settlementId.Value}.");
+
             // Save the updated settlements back to the JSON file
             await _settlementService.SaveSettlementsAsync(settlements);
             _logger.LogInformation($"Saved updated settlements after adding district '{district.Name}'.");
-        
+
             return Json(new { success = true, message = "Район успешно построен." });
         }
+        public async Task<IActionResult> Map(int settlementId)
+        {
+            // Получаем данные о поселении по ID
+            var settlement = await _settlementService.GetInfoSettlement(settlementId);
+
+            if (settlement == null)
+            {
+                return NotFound();
+            }
+
+            // Загружаем всех резидентов
+            var residents = await _settlementService.LoadResidents(settlementId);
+
+            // Проверяем, загружены ли резиденты
+            if (residents == null)
+            {
+                residents = new List<Resident>(); // Или обработайте ошибку, если это необходимо
+            }
+
+            // Сопоставляем резидентов с дистриктами по их ID
+            foreach (var district in settlement.Districts)
+            {
+                // Проверяем, что district и его ResidentsIds не null
+                if (district != null && district.ResidentsIds != null)
+                {
+                    district.Residents = residents.Where(r => district.ResidentsIds.Contains(r.Id)).ToList();
+                }
+            }
+
+            // Передаем данные о районах в представление
+            return View(settlement);
+        }
+
+
 
 
         
@@ -351,17 +503,16 @@ namespace SettlementManager.Controllers
                     return false; // Not enough of this resource
                 }
             }
-
             // Check for required tools
             foreach (var tool in requiredTools)
             {
-                var hasTool = settlement.Resources.Any(r => r.Name.Equals(tool, StringComparison.OrdinalIgnoreCase) && r.IsTool);
+                var hasTool = settlement.Resources.Any(r => r.Name.Equals(tool, StringComparison.OrdinalIgnoreCase));
                 if (!hasTool)
                 {
+
                     return false; // Required tool not available
                 }
             }
-
             return true; // All checks passed
         }
 
@@ -384,22 +535,22 @@ namespace SettlementManager.Controllers
             }
         }
 
-        // GET: /Settlement/GetInfoSettlement
-        public async Task<IActionResult> GetInfoSettlement()
-        {
-            var settlementId = HttpContext.Session.GetInt32("SelectedSettlementId");
-            if (!settlementId.HasValue)
-            {
-                return NotFound();
-            }
-
-            var settlement = await _settlementService.GetInfoSettlement(settlementId.Value);
-            if (settlement == null)
-            {
-                return NotFound();
-            }
-            return View(settlement);
-        }
+        // // GET: /Settlement/GetInfoSettlement
+        // public async Task<IActionResult> GetInfoSettlement()
+        // {
+        //     var settlementId = HttpContext.Session.GetInt32("SelectedSettlementId");
+        //     if (!settlementId.HasValue)
+        //     {
+        //         return NotFound();
+        //     }
+        //
+        //     var settlement = await _settlementService.GetInfoSettlement(settlementId.Value);
+        //     if (settlement == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //     return View(settlement);
+        // }
 
         // GET: /Settlement/GetResidents
         public async Task<IActionResult> GetResidents()
@@ -440,6 +591,38 @@ namespace SettlementManager.Controllers
             await _settlementService.AddSpear(settlementId.Value);
             return RedirectToAction("Index");
         }
+        
+        [HttpPost]
+        public async Task<IActionResult> SkipDay(int days)
+        {
+            if (days <= 0)
+            {
+                return BadRequest("Invalid number of days.");
+            }
+
+            // Load the settlements
+            var settlements = await _settlementService.GetAllSettlements();
+            var settlementId = HttpContext.Session.GetInt32("SelectedSettlementId");
+
+            if (settlementId == null || settlements.All(s => s.Id != settlementId))
+            {
+                return NotFound("Settlement not found.");
+            }
+
+            var settlement = settlements.FirstOrDefault(s => s.Id == settlementId);
+
+            // Skip days and update resources
+            for (int i = 0; i < days; i++)
+            {
+                await _settlementService.UpdateDailyOutput(settlement.Id);
+            }
+
+            // Save the updated settlement
+
+
+            return Ok(new { message = $"Successfully skipped {days} day(s)." });
+        }
+
 
         // POST: /Settlement/AddSpearMember
         [HttpPost("AddSpearMember")]
