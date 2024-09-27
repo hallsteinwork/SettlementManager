@@ -1,310 +1,353 @@
-@model Settlement
+    @model Settlement
 
-@{
-    ViewData["Title"] = Model.Name;
-}
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-<h1>@ViewData["Title"]</h1>
+    @{
+        ViewData["Title"] = Model.Name;
+    }
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <h1>@ViewData["Title"]</h1>
 
-<p>@Model.Description</p>
+    <p>@Model.Description</p>
 
-<h3>Районы:</h3>
-    <div class="row">
-        @foreach (var district in Model.Districts)
-        {
-            <div class="col-md-4">
-                <div class="card mb-3" data-toggle="modal" data-target="#districtModal-@district.Id">
-                    <div class="card-body">
-                        <h5 class="card-title">@district.Name</h5>
-                    </div>
-                </div>
-            </div>
-
-            <!-- District Modal -->
-            <div class="modal fade" id="districtModal-@district.Id" tabindex="-1" role="dialog" aria-labelledby="districtModalLabel-@district.Id" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="districtModalLabel-@district.Id">@district.Name</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>
-                                <strong>Описание:</strong> @district.Description
-                            </p>
-                            <p>
-                                <strong>Грейд:</strong> @district.Grade.ToRussian()
-                            </p>
-                            <p>
-                                <strong>Режим производства:</strong> @district.ProductionMode
-                            </p>
-                            <p>
-                                <strong>Отпут:</strong> @string.Join(", ", district.Output ?? Enumerable.Empty<string>())
-
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-
-<h3>Поселенцы:</h3>
-    <div class="row">
-        @if (Model.Residents != null && Model.Residents.Any())
-        {
-            // Ascended Residents
-            var ascendedResidents = Model.Residents.Where(r => r.IsAscended).ToList();
-            if (ascendedResidents.Any())
+    <h3>Районы:</h3>
+        <div class="row">
+            @foreach (var district in Model.Districts)
             {
                 <div class="col-md-4">
-                    <h5>Вознесенные:</h5>
-                    <ul>
-                        @foreach (var resident in ascendedResidents)
-                        {
-                            <li data-toggle="modal" data-target="#residentModal-@resident.Id">
-                                <strong>@resident.Name</strong>
-                                @* Выводим грейд только для вознесенных *@
+                    <div class="card mb-3" data-toggle="modal" data-target="#districtModal-@district.Id">
+                        <div class="card-body">
+                            <h5 class="card-title">@district.Name</h5>
+                        </div>
+                    </div>
+                </div>
 
-                                @if (resident.IsAscended)
-                                {
-                                    <strong>-</strong>
-                                    @(resident.GradeOfAscending switch
+                <!-- District Modal -->
+                <div class="modal fade" id="districtModal-@district.Id" tabindex="-1" role="dialog" aria-labelledby="districtModalLabel-@district.Id" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="districtModalLabel-@district.Id">@district.Name</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    <strong>Описание:</strong> @district.Description
+                                </p>
+                                <p>
+                                    <strong>Грейд:</strong> @district.Grade.ToRussian()
+                                </p>
+                                <p>
+                                    <strong>Режим производства:</strong> @district.ProductionMode
+                                </p>
+                                <p>
+                                    <strong>Отпут:</strong> @string.Join(", ", district.Output ?? Enumerable.Empty<string>())
+
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    <h3>Поселенцы:</h3>
+        <div class="row">
+            @if (Model.Residents != null && Model.Residents.Any())
+            {
+                // Ascended Residents
+                var ascendedResidents = Model.Residents.Where(r => r.IsAscended).ToList();
+                if (ascendedResidents.Any())
+                {
+                    <div class="col-md-4">
+                        <h5>Вознесенные:</h5>
+                        <ul>
+                            @foreach (var resident in ascendedResidents)
+                            {
+                                <li data-toggle="modal" data-target="#residentModal-@resident.Id">
+                                    <strong>@resident.Name</strong>
+                                    @* Выводим грейд только для вознесенных *@
+
+                                    @if (resident.IsAscended)
                                     {
-                                        1 => "Дерево",
-                                        2 => "Бронза",
-                                        3 => "Серебро",
-                                        4 => "Золото",
-                                        5 => "Небо",
-                                        _ => "Неизвестный"
-                                    })
+                                        <strong>-</strong>
+                                        @(resident.GradeOfAscending switch
+                                        {
+                                            1 => "Дерево",
+                                            2 => "Бронза",
+                                            3 => "Серебро",
+                                            4 => "Золото",
+                                            5 => "Небо",
+                                            _ => "Неизвестный"
+                                        })
+                                    }
+
+                                </li>
+
+                                <!-- Resident Modal -->
+                                <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>
+                                                    <strong>Профессия:</strong> @resident.Occupation
+                                                </p>
+                                                <p>
+                                                    <strong>Описание:</strong> @resident.Description
+                                                </p>
+                                                <p>
+                                                    <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
+                                                </p>
+                                                @* Грейд вознесения выводим только для вознесенных *@
+                                                @if (resident.IsAscended)
+                                                {
+                                                    <p>
+                                                        <strong>Грейд вознесения:</strong> @(resident.GradeOfAscending switch
+                                                       {
+                                                           1 => "Дерево",
+                                                           2 => "Бронза",
+                                                           3 => "Серебро",
+                                                           4 => "Золото",
+                                                           5 => "Небо",
+                                                           _ => "Неизвестный"
+                                                       })
+                                                    </p>
+                                                }
+
+                                                <p>
+                                                    <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                // Important Residents
+                var importantResidents = Model.Residents
+                    .Where(r => r.IsImportant && !r.IsAscended)
+                    .ToList();
+                if (importantResidents.Any())
+                {
+                    <div class="col-md-4">
+                        <h5>Важные:</h5>
+                        <ul>
+                            @foreach (var resident in importantResidents)
+                            {
+                                <li data-toggle="modal" data-target="#residentModal-@resident.Id">
+                                    @resident.Name
+                                </li>
+
+                                <!-- Resident Modal -->
+                                <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>
+                                                    <strong>Профессия:</strong> @resident.Occupation
+                                                </p>
+                                                <p>
+                                                    <strong>Описание:</strong> @resident.Description
+                                                </p>
+                                                <p>
+                                                    <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
+                                                </p>
+                                                @* Грейд вознесения выводим только для вознесенных *@
+                                                @if (resident.IsAscended)
+                                                {
+                                                    <p>
+                                                        <strong>Грейд вознесения:</strong> @(resident.GradeOfAscending switch
+                                                                                           {
+                                                                                               1 => "Дерево",
+                                                                                               2 => "Бронза",
+                                                                                               3 => "Серебро",
+                                                                                               4 => "Золото",
+                                                                                               5 => "Небо",
+                                                                                               _ => "Неизвестный"
+                                                                                           })
+                                                    </p>
+                                                }
+
+                                                <p>
+                                                    <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                // Other Residents
+                var otherResidents = Model.Residents
+                    .Where(r => !r.IsAscended && !r.IsImportant)
+                    .ToList();
+                if (otherResidents.Any())
+                {
+                    <div class="col-md-4">
+                        <h5>Другие:</h5>
+                        <ul>
+                            @foreach (var resident in otherResidents)
+                            {
+                                <li data-toggle="modal" data-target="#residentModal-@resident.Id">
+                                    @resident.Name
+                                </li>
+
+                                <!-- Resident Modal -->
+                                <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>
+                                                    <strong>Профессия:</strong> @resident.Occupation
+                                                </p>
+                                                <p>
+                                                    <strong>Описание:</strong> @resident.Description
+                                                </p>
+                                                <p>
+                                                    <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
+                                                </p>
+                                                @* Грейд вознесения выводим только для вознесенных *@
+                                                @if (resident.IsAscended)
+                                                {
+                                                    <p>
+                                                        <strong>Грейд вознесения:</strong> @resident.GradeOfAscending switch
+                                                        {
+                                                        1 => "Дерево",
+                                                        2 => "Бронза",
+                                                        3 => "Серебро",
+                                                        4 => "Золото",
+                                                        5 => "Небо",
+                                                        _ => "Неизвестный"
+                                                        }
+                                                    </p>
+                                                }
+                                                <p>
+                                                    <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-md-12">
+                    <p>Нет поселенцев.</p>
+                </div>
+            }
+        </div>
+
+
+    <h3>Ресурсы:</h3>
+        <table id="resourcesTable" class="table">
+            <thead>
+            <tr>
+                <th>Ресурс</th>
+                <th>Количество</th>
+                <th>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
+                        Добавить ресурс
+                    </button>
+                    <button type="button" id="removeResourceButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#removeResourceModal">
+                        Потратить ресурс
+                    </button>
+
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            @{
+            var sortedResources = Model.Resources
+            .OrderBy(r => r.Type)
+            .ThenBy(r => r.Id)
+            .ToList();
+            }
+
+            @foreach (var resource in sortedResources)
+            {
+            <tr>
+                <td style="font-weight: @(resource.Type <= (ResourceType)4 ? "bold" : "normal")">
+                    @resource.Name
+                </td>
+                <td>@resource.Amount</td>
+                <td></td>
+            </tr>
+            }
+            </tbody>
+        </table>
+    <!-- Modal для уменьшения ресурса -->
+    <div class="modal fade" id="removeResourceModal" tabindex="-1" aria-labelledby="removeResourceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="removeResourceModalLabel">Потратить ресурс</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="removeResourceForm" method="post" action="@Url.Action("RemoveResource", "Settlement")">
+                        <input type="hidden" name="settlementId" value="@Model.Id"/>
+                        <input type="hidden" name="resourceName" id="resourceName" />
+                        <input type="hidden" name="resourceType" id="resourceTypeHidden" />
+
+                        <div class="mb-3">
+                            <label for="resourceSelect" class="form-label">Выберите ресурс</label>
+                            <select id="resourceSelect" name="resourceId" class="form-select" onchange="setResourceDetails()">
+                                @foreach (var resource in Model.Resources)
+                                {
+                                <option value="@resource.Id" data-name="@resource.Name" data-type="@resource.Type">@resource.Name</option>
                                 }
+                            </select>
+                        </div>
 
-                            </li>
+                        <div class="mb-3">
+                            <label for="amountToRemove" class="form-label">Количество для вычитания</label>
+                            <input type="number" name="amount" class="form-control" required>
+                        </div>
 
-                            <!-- Resident Modal -->
-                            <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>
-                                                <strong>Профессия:</strong> @resident.Occupation
-                                            </p>
-                                            <p>
-                                                <strong>Описание:</strong> @resident.Description
-                                            </p>
-                                            <p>
-                                                <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
-                                            </p>
-                                            @* Грейд вознесения выводим только для вознесенных *@
-                                            @if (resident.IsAscended)
-                                            {
-                                                <p>
-                                                    <strong>Грейд вознесения:</strong> @(resident.GradeOfAscending switch
-                                                   {
-                                                       1 => "Дерево",
-                                                       2 => "Бронза",
-                                                       3 => "Серебро",
-                                                       4 => "Золото",
-                                                       5 => "Небо",
-                                                       _ => "Неизвестный"
-                                                   })
-                                                </p>
-                                            }
-
-                                            <p>
-                                                <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </ul>
+                        <button type="submit" class="btn btn-primary">Подтвердить</button>
+                    </form>
                 </div>
-            }
-
-            // Important Residents
-            var importantResidents = Model.Residents
-                .Where(r => r.IsImportant && !r.IsAscended)
-                .ToList();
-            if (importantResidents.Any())
-            {
-                <div class="col-md-4">
-                    <h5>Важные:</h5>
-                    <ul>
-                        @foreach (var resident in importantResidents)
-                        {
-                            <li data-toggle="modal" data-target="#residentModal-@resident.Id">
-                                @resident.Name
-                            </li>
-
-                            <!-- Resident Modal -->
-                            <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>
-                                                <strong>Профессия:</strong> @resident.Occupation
-                                            </p>
-                                            <p>
-                                                <strong>Описание:</strong> @resident.Description
-                                            </p>
-                                            <p>
-                                                <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
-                                            </p>
-                                            @* Грейд вознесения выводим только для вознесенных *@
-                                            @if (resident.IsAscended)
-                                            {
-                                                <p>
-                                                    <strong>Грейд вознесения:</strong> @(resident.GradeOfAscending switch
-                                                                                       {
-                                                                                           1 => "Дерево",
-                                                                                           2 => "Бронза",
-                                                                                           3 => "Серебро",
-                                                                                           4 => "Золото",
-                                                                                           5 => "Небо",
-                                                                                           _ => "Неизвестный"
-                                                                                       })
-                                                </p>
-                                            }
-
-                                            <p>
-                                                <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </ul>
-                </div>
-            }
-
-            // Other Residents
-            var otherResidents = Model.Residents
-                .Where(r => !r.IsAscended && !r.IsImportant)
-                .ToList();
-            if (otherResidents.Any())
-            {
-                <div class="col-md-4">
-                    <h5>Другие:</h5>
-                    <ul>
-                        @foreach (var resident in otherResidents)
-                        {
-                            <li data-toggle="modal" data-target="#residentModal-@resident.Id">
-                                @resident.Name
-                            </li>
-
-                            <!-- Resident Modal -->
-                            <div class="modal fade" id="residentModal-@resident.Id" tabindex="-1" role="dialog" aria-labelledby="residentModalLabel-@resident.Id" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="residentModalLabel-@resident.Id">@resident.Name</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>
-                                                <strong>Профессия:</strong> @resident.Occupation
-                                            </p>
-                                            <p>
-                                                <strong>Описание:</strong> @resident.Description
-                                            </p>
-                                            <p>
-                                                <strong>Вознесенный:</strong> @(resident.IsAscended ? "Да" : "Нет")
-                                            </p>
-                                            @* Грейд вознесения выводим только для вознесенных *@
-                                            @if (resident.IsAscended)
-                                            {
-                                                <p>
-                                                    <strong>Грейд вознесения:</strong> @resident.GradeOfAscending switch
-                                                    {
-                                                    1 => "Дерево",
-                                                    2 => "Бронза",
-                                                    3 => "Серебро",
-                                                    4 => "Золото",
-                                                    5 => "Небо",
-                                                    _ => "Неизвестный"
-                                                    }
-                                                </p>
-                                            }
-                                            <p>
-                                                <strong>Дата добавления:</strong> @resident.DateAdded.ToString("dd.MM.yyyy")
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </ul>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-md-12">
-                <p>Нет поселенцев.</p>
             </div>
-        }
+        </div>
     </div>
 
+   
 
-<h3>Ресурсы:</h3>
-    <table id="resourcesTable" class="table">
-        <thead>
-        <tr>
-            <th>Ресурс</th>
-            <th>Количество</th>
-            <th>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
-                    Добавить ресурс
-                </button>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        @{
-        var sortedResources = Model.Resources
-        .OrderBy(r => r.Type)
-        .ThenBy(r => r.Id)
-        .ToList();
-        }
 
-        @foreach (var resource in sortedResources)
-        {
-        <tr>
-            <td style="font-weight: @(resource.Type <= (ResourceType)4 ? "bold" : "normal")">
-                @resource.Name
-            </td>
-            <td>@resource.Amount</td>
-            <td></td>
-        </tr>
-        }
-        </tbody>
-    </table>
 
-<!-- Modal for adding a resource -->
 
-<div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
+    <!-- Модальное окно для добавления ресурса -->
+    <div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -314,27 +357,23 @@
                 <div class="modal-body">
                     <form id="addResourceForm" method="post" action="@Url.Action("AddResource", "Settlement")">
                         <input type="hidden" name="settlementId" value="@Model.Id"/>
-
                         <div class="form-group">
-                            <label for="ResourceType">Ресурс</label>
-                            <select id="resourceType" name="Type" class="form-select" required>
+                            <label for="addResourceType">Ресурс</label>
+                            <select id="addResourceType" name="Type" class="form-select" required>
                                 @foreach (var resourceType in Enum.GetValues(typeof(ResourceType)).Cast<ResourceType>())
                                 {
-                                    <option value="@((int)resourceType)">@resourceType.ToRussian()</option>
+                                <option value="@((int)resourceType)">@resourceType.ToRussian()</option>
                                 }
                             </select>
                         </div>
-
                         <div class="form-group">
-                            <label for="Amount">Количество</label>
+                            <label for="addAmount">Количество</label>
                             <input type="number" name="Amount" class="form-control" required/>
                         </div>
-
                         <div class="form-group">
-                            <label for="Name">Название</label>
+                            <label for="resourceName">Название</label>
                             <input type="text" name="Name" id="resourceName" class="form-control" required/>
                         </div>
-
                         <button type="submit" class="btn btn-primary">Внести</button>
                     </form>
                 </div>
@@ -342,32 +381,47 @@
         </div>
     </div>
 
-
-@section Scripts {
+    @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         $(document).ready(function() {
-            $('#resourceType').on('change', function() {
+            // Обработчик изменения для выбора типа ресурса
+            $('#addResourceType').on('change', function() {
                 var selectedType = $(this).val();
                 var resourceNameField = $('#resourceName');
 
-                // Auto-fill the name based on the resource type
-                if (selectedType != "5") { // Assuming "5" is the value for "Tool"
-                    resourceNameField.val($(this).find('option:selected').text());
-                    resourceNameField.prop('readonly', true); // Make it read-only for resources
+                // Автозаполнение названия на основе типа ресурса
+                if (selectedType != "5") { // Предполагая, что "5" это значение для "Инструмента"
+                    resourceNameField.val($(this).find('option:selected').text()); // Автозаполнение
+                    resourceNameField.prop('readonly', true); // Сделать поле только для чтения для ресурсов
                 } else {
-                    resourceNameField.val(''); // Clear the field for tools
-                    resourceNameField.prop('readonly', false); // Make it editable for tools
+                    resourceNameField.val(''); // Очистить поле для инструментов
+                    resourceNameField.prop('readonly', false); // Сделать его редактируемым для инструментов
                 }
             });
 
-            // Trigger change to set initial state
-            $('#resourceType').change();
+            // Триггер изменения для установки начального состояния
+            $('#addResourceType').change();
+        });
+    
+        </script>
+    <script>
+        function setResourceDetails() {
+            const resourceSelect = document.getElementById("resourceSelect");
+            const selectedResource = resourceSelect.options[resourceSelect.selectedIndex];
 
-            $('form#addResourceForm').on('submit', function(e) {
-                console.log('Form is being submitted!');
-                // You can add other form validation or logging here
-            });
+            // Установка имени и типа ресурса в скрытые поля
+            document.getElementById("resourceName").value = selectedResource.getAttribute("data-name");
+            document.getElementById("resourceTypeHidden").value = selectedResource.getAttribute("data-type");
+        }
+
+        // Триггер изменения для установки начального состояния
+        document.addEventListener("DOMContentLoaded", function() {
+            setResourceDetails();
         });
     </script>
-}
+        }
+
+
+

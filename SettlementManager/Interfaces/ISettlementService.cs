@@ -21,7 +21,11 @@ namespace SettlementManager.Interfaces
         
         Task<List<District>> GetDistrictsForSetllement(int settlementId);
         Task<List<District>> GetAllDistrictsAsync();
-        
+
+        Task<bool> RemoveResourceAsync(int settlementId, ResourceType resourceType, int resourceId,
+            int amount, string name);
+
+        Task<List<Resource>> LoadResourcesForSettlement(int settlementId);
         Task SaveDistrictAsync(District district);
         Task<List<Settlement>> GetAllSettlements(); // Получение всех поселений
         Task CreateSettlement(Settlement settlement); // Создание нового поселения

@@ -19,6 +19,7 @@ namespace SettlementManager.Services
         private readonly string _spearFilePath = Path.Combine("DataFiles", "spears.json");
 
         private readonly ILogger<SettlementService> _logger;
+        private ISettlementService _settlementServiceImplementation;
 
         public SettlementService(ILogger<SettlementService> logger)
         {
@@ -53,7 +54,38 @@ namespace SettlementManager.Services
             return district.RequiredResources; // Return the list directly
         }
 
-        
+        public async Task<bool> RemoveResourceAsync(int settlementId, ResourceType resourceType, int resourceId, int amount, string name)
+        {
+            var resources = await LoadResourcesForSettlement(settlementId);
+
+            var resource = resources.FirstOrDefault(r => r.Type == resourceType && r.Id == resourceId);
+
+            if (resource == null)
+            {
+                _logger.LogWarning($"Resource not found. Type={resourceType}, Id={resourceId}");
+                return false; // Ресурс не найден
+            }
+
+            if (resource.Amount < amount)
+            {
+                _logger.LogWarning($"Not enough resource. Requested={amount}, Available={resource.Amount}");
+                return false; // Недостаточно ресурсов
+            }
+
+            // Уменьшение количества ресурса
+            resource.Amount -= amount;
+
+            // Логирование изменения
+            _logger.LogInformation($"Reduced resource {resource.Name} (Id={resource.Id}) by {amount}. New amount: {resource.Amount}");
+
+            // Обновление ресурса
+            await UpdateResourceAsync(resource);
+
+            return true;
+        }
+
+
+
         public async Task SaveDistrictAsync(District district)
         {
             Console.WriteLine($"Saving district: {district.Description}");
@@ -247,7 +279,7 @@ namespace SettlementManager.Services
         }
 
 
-        private async Task<List<Resource>> LoadResourcesForSettlement(int settlementId)
+        public async Task<List<Resource>> LoadResourcesForSettlement(int settlementId)
         {
             // Load all settlements
             var settlements = await LoadSettlements(); // Assuming this method loads all settlements

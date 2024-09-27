@@ -106,6 +106,32 @@ public async Task<IActionResult> Manage(int settlementId)
     ViewData["Title"] = "Управление поселением: " + settlement.Name;
     return View(settlement);
 }
+[HttpPost]
+public async Task<IActionResult> RemoveResource(int settlementId, ResourceType resourceType, int resourceId, int amount, string name)
+{
+    _logger.LogInformation($"Received parameters: settlementId={settlementId}, resourceType={resourceType}, resourceId={resourceId}, amount={amount}, name={name}");
+
+    if (amount <= 0)
+    {
+        ModelState.AddModelError("", "Количество должно быть больше 0.");
+        return RedirectToAction("Manage", new { id = settlementId });
+    }
+
+    var success = await _settlementService.RemoveResourceAsync(settlementId, resourceType, resourceId, amount, name);
+
+    if (!success)
+    {
+        ModelState.AddModelError("", "Не удалось вычесть ресурс. Возможно, недостаточно средств или ресурс не найден.");
+    }
+    else
+    {
+        _logger.LogInformation($"Resource removed successfully: Type={resourceType}, Id={resourceId}, Amount={amount}");
+    }
+
+    return RedirectToAction("Manage", new { id = settlementId });
+}
+
+
 
 
 
