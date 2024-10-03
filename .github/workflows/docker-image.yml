@@ -19,11 +19,9 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
-      - name: List files in publish directory
-        run: ls -R ./SettlementManager # Adjust to your path if needed
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
-          publish_dir: ./SettlementManager # Adjust to the build output directory if necessary
+          publish_dir: ./SettlementManager/wwwroot # Укажите директорию, где находятся ваши скомпилированные файлы
           github_token: ${{ secrets.GITHUB_TOKEN }}
