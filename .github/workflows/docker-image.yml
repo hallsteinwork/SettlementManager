@@ -16,12 +16,14 @@ jobs:
 
   deploy:
     runs-on: ubuntu-22.04
-    needs: build  # Ensures that the build job completes before deploying
+    needs: build
     steps:
       - uses: actions/checkout@v3
+      - name: List files in publish directory
+        run: ls -R ./SettlementManager # Change this if your publish_dir is different
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
           publish_dir: ./SettlementManager # Directory to publish to GitHub Pages
-          github_token: ${{ secrets.GITHUB_TOKEN }} # Use the GitHub token for authentication
+          github_token: ${{ secrets.GITHUB_TOKEN }}
