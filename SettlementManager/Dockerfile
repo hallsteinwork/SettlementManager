@@ -1,10 +1,10 @@
-﻿# Use the official .NET SDK image for the build stage
+# Use the official .NET SDK image for the build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy the project file and restore dependencies
-COPY ["SettlementManager.csproj", "./"]
-RUN dotnet restore "SettlementManager.csproj"
+COPY ["SettlementManager/SettlementManager.csproj", "SettlementManager/"]
+RUN dotnet restore "SettlementManager/SettlementManager.csproj"
 
 # Copy the rest of the code
 COPY . .
