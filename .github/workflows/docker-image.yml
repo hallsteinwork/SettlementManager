@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the Docker image
-        run: docker build . --file SettlementManager/Dockerfile --tag settlementmanager:$(date +%s)
+        run: docker build . --file SettlementManager/SettlementManager/Dockerfile --tag settlementmanager:$(date +%s)
 
   deploy:
     runs-on: ubuntu-22.04
@@ -20,10 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: List files in publish directory
-        run: ls -R ./SettlementManager # Change this if your publish_dir is different
+        run: ls -R .SettlementManager//SettlementManager # Change this if your publish_dir is different
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
-          publish_dir: ./SettlementManager # Directory to publish to GitHub Pages
+          publish_dir: .SettlementManager//SettlementManager # Directory to publish to GitHub Pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
