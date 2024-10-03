@@ -10,17 +10,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file SettlementManager/Dockerfile --tag settlementmanager:$(date +%s)
-      
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: docker build . --file SettlementManager/Dockerfile --tag settlementmanager:$(date +%s)
+
   deploy:
     runs-on: ubuntu-22.04
+    needs: build  # Ensures that the build job completes before deploying
     steps:
       - uses: actions/checkout@v3
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
-
-          publish_dir: ./SettlementManager # deploy src folder
+          publish_dir: ./SettlementManager # Directory to publish to GitHub Pages
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Use the GitHub token for authentication
