@@ -1,39 +1,20 @@
-﻿# Use the ASP.NET base image for runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-# Use the .NET SDK image for building the application
+﻿# Use the official .NET SDK image for the build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy the project file and restore dependencies
-
-COPY ["SettlementManager.csproj", "./"]
+COPY ["SettlementManager/SettlementManager.csproj", "./"]
 RUN dotnet restore "SettlementManager.csproj"
 
-WORKDIR "/src/SettlementManager"
-# Copy the entire source code
+# Copy the rest of the code
 COPY . .
 
 # Build the application
 WORKDIR "/src/SettlementManager"
-RUN dotnet build "SettlementManager.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "SettlementManager.csproj" -c Release -o /app/build
 
-# Publish the application
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "SettlementManager.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# Final stage to create the runtime image
-FROM base AS final
+# Use the official ASP.NET image for the final stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-
-# Copy the published application from the publish stage
-COPY --from=publish /app/publish .
-
-# Set the entry point for the application
+COPY --from=build /app/build .
 ENTRYPOINT ["dotnet", "SettlementManager.dll"]
